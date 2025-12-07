@@ -1,0 +1,8 @@
+
+toutes les vues doivent etre  blade php ergonomique , excellement styliser(tailwindcss) , integrer le loading spinner lors des chargements : couleur majoritaire : bleu vert blanc rouge
+ultra responsif adaper pour tout type d'appareil (mobile,ipad,tablette,pc,tv...),haute performance, s'afficher en anglais ou en franxais en fonction de la langue de l'utiliateur qui est determiner par la variable $isFrench qui est deja enregistrer dnas toutes les vues via un service provider
+
+contexte: site de vente de chiot en france
+langue par defaut: franxais
+dans le cas ou c'est une vue accessible sans se loguer tu ajoutera simplement un bouton permettant de traduire la page
+l'entreprise qui a developper c'est techforgesolution237 le lien du site web est techforgesolution237.supahuman.site (a ajouter a tout les footer)

@@ -1,0 +1,702 @@
+# Guide Complet API Auto-École Ange Raphael
+
+## 📋 Table des Matières
+1. [Configuration](#configuration)
+2. [Authentification](#authentification)
+3. [Paiements](#paiements)
+4. [Cours](#cours)
+5. [Parrainage](#parrainage)
+6. [Sessions & Configuration](#sessions--configuration)
+7. [Codes d'Erreur](#codes-derreur)
+8. [Exemples cURL](#exemples-curl)
+
+---
+
+## Configuration
+
+### Base URL
+```
+Production: https://cfpam/api/auto-ecole
+Local: http://127.0.0.1:8000/api/auto-ecole
+```
+
+### Headers Requis
+```
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {token}  // Pour routes protégées 🔒
+```
+
+---
+
+## 🔐 Authentification
+
+### 1. Inscription
+**POST** `/inscription`
+
+**Request Body:**
+```json
+{
+  "nom": "Doe",
+  "prenom": "John",
+  "email": "john@example.com",
+  "telephone": "+237600000000",
+  "password": "motdepasse123",
+  "type_permis": "permis_b",
+  "code_parrainage": "ARB-ABC123",
+  "session_id": 1,
+  "centre_examen_id": 1,
+  "jours_pratique": [1, 3, 5]
+}
+```
+
+**Response Success (201):**
+```json
+{
+  "success": true,
+  "message": "Inscription réussie",
+  "user": {
+    "id": 1,
+    "nom": "Doe",
+    "prenom": "John",
+    "email": "john@example.com",
+    "telephone": "+237600000000",
+    "type_permis": "permis_b",
+    "code_parrainage": "ARB-XYZ789",
+    "niveau_parrainage": "N0",
+    "session_id": 1,
+    "centre_examen_id": 1
+  },
+  "token": "1|abc123tokenhere..."
+}
+```
+
+**Response Error (422):**
+```json
+{
+  "success": false,
+  "errors": {
+    "email": ["Le champ email est déjà utilisé."],
+    "telephone": ["Le numéro de téléphone est déjà utilisé."]
+  }
+}
+```
+
+---
+
+### 2. Connexion
+**POST** `/connexion`
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "motdepasse123"
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "nom": "Doe",
+    "prenom": "John",
+    "email": "john@example.com",
+    "code_parrainage": "ARB-XYZ789",
+    "niveau_parrainage": "N1"
+  },
+  "token": "2|xyz789tokenhere..."
+}
+```
+
+**Response Error (401):**
+```json
+{
+  "success": false,
+  "message": "Identifiants invalides"
+}
+```
+
+---
+
+### 3. Profil 🔒
+**GET** `/profil`
+
+**Headers:**
+```
+Authorization: Bearer {token}
+```
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "nom": "Doe",
+    "prenom": "John",
+    "email": "john@example.com",
+    "telephone": "+237600000000",
+    "type_permis": "permis_b",
+    "code_parrainage": "ARB-XYZ789",
+    "niveau_parrainage": "N1",
+    "session": {
+      "id": 1,
+      "nom": "Session Janvier 2025",
+      "date_examen": "2025-03-15"
+    },
+    "centre_examen": {
+      "id": 1,
+      "nom": "Centre Yaoundé",
+      "adresse": "Ekounou"
+    },
+    "jours_pratique": [
+      {"id": 1, "nom": "Lundi"},
+      {"id": 3, "nom": "Mercredi"},
+      {"id": 5, "nom": "Vendredi"}
+    ]
+  }
+}
+```
+
+---
+
+## 💳 Paiements
+
+### 4. Initier Paiement 🔒
+**POST** `/paiement/initier`
+
+**Request Body:**
+```json
+{
+  "tranche": "x",
+  "methode_paiement": "orange_money",
+  "telephone": "+237600000000"
+}
+```
+
+**Tranches disponibles:**
+- `x`: 30,000 FCFA (Tranche X)
+- `y`: 30,000 FCFA (Tranche Y)
+- `complet`: 60,000 FCFA (Paiement complet)
+
+**Méthodes disponibles:**
+- `orange_money`
+- `mtn_money`
+- `express_union`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "message": "Paiement effectué avec succès",
+  "transaction_id": "TXN-20250126123456-ABC12345",
+  "montant": 30000,
+  "tranche": "x",
+  "statut": "valide",
+  "date": "2025-01-26T10:30:00"
+}
+```
+
+**Response Error (400):**
+```json
+{
+  "success": false,
+  "message": "La tranche X est déjà payée"
+}
+```
+
+---
+
+### 5. Payer avec Code Caisse 🔒
+**POST** `/paiement/code-caisse`
+
+**Request Body:**
+```json
+{
+  "code": "CC-ABC1234567"
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "message": "Paiement validé avec succès",
+  "transaction_id": "TXN-20250126123456-DEF67890",
+  "montant": 30000,
+  "tranche": "x"
+}
+```
+
+**Response Error (404):**
+```json
+{
+  "success": false,
+  "message": "Code caisse invalide ou déjà utilisé"
+}
+```
+
+---
+
+### 6. Vérifier Statut 🔒
+**GET** `/paiement/statut/{transactionId}`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "statut": "valide",
+  "montant": 30000,
+  "tranche": "x",
+  "methode": "orange_money",
+  "date": "2025-01-26T10:30:00"
+}
+```
+
+---
+
+### 7. Historique Paiements 🔒
+**GET** `/paiements/historique`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "paiements": [
+    {
+      "id": 1,
+      "transaction_id": "TXN-20250126123456-ABC12345",
+      "montant": 30000,
+      "tranche": "x",
+      "methode": "orange_money",
+      "statut": "valide",
+      "date": "2025-01-26T10:30:00"
+    },
+    {
+      "id": 2,
+      "transaction_id": "TXN-20250127145623-XYZ98765",
+      "montant": 30000,
+      "tranche": "y",
+      "methode": "mtn_money",
+      "statut": "valide",
+      "date": "2025-01-27T14:56:23"
+    }
+  ],
+  "total_paye": 60000,
+  "montant_requis": 60000,
+  "montant_restant": 0
+}
+```
+
+---
+
+## 📚 Cours
+
+### 8. Structure des Cours 🔒
+**GET** `/cours/{type}`
+
+**Paramètres:**
+- `type`: `theorique` ou `pratique`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "modules": [
+    {
+      "id": 1,
+      "nom": "Code de la route",
+      "type": "theorique",
+      "ordre": 1,
+      "chapitres": [
+        {
+          "id": 1,
+          "nom": "Signalisation",
+          "description": "Les panneaux de signalisation routière",
+          "ordre": 1,
+          "lecons": [
+            {
+              "id": 1,
+              "titre": "Panneaux de danger",
+              "contenu_texte": "Les panneaux de danger avertissent...",
+              "image_url": "https://example.com/images/panneaux-danger.jpg",
+              "video_url": "https://example.com/videos/panneaux.mp4",
+              "duree_minutes": 15,
+              "ordre": 1,
+              "completee": false,
+              "accessible": true
+            },
+            {
+              "id": 2,
+              "titre": "Panneaux d'interdiction",
+              "contenu_texte": "Les panneaux d'interdiction...",
+              "image_url": null,
+              "video_url": null,
+              "duree_minutes": 10,
+              "ordre": 2,
+              "completee": false,
+              "accessible": false
+            }
+          ],
+          "quiz_disponible": false,
+          "quiz_reussi": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 9. Compléter Leçon 🔒
+**POST** `/cours/lecon/{id}/completer`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "message": "Leçon complétée avec succès",
+  "prochaine_lecon": {
+    "id": 2,
+    "titre": "Panneaux d'interdiction"
+  }
+}
+```
+
+---
+
+### 10. Récupérer Quiz 🔒
+**GET** `/cours/chapitre/{id}/quiz`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "chapitre": "Signalisation",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Que signifie ce panneau triangulaire rouge ?",
+      "image_url": "https://example.com/images/q1.jpg",
+      "type": "qcm",
+      "options": [
+        {
+          "id": 1,
+          "texte": "Danger"
+        },
+        {
+          "id": 2,
+          "texte": "Interdiction"
+        },
+        {
+          "id": 3,
+          "texte": "Obligation"
+        },
+        {
+          "id": 4,
+          "texte": "Information"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Quelle est la distance de sécurité minimale ?",
+      "image_url": null,
+      "type": "qcm",
+      "options": [
+        {"id": 5, "texte": "10 mètres"},
+        {"id": 6, "texte": "20 mètres"},
+        {"id": 7, "texte": "30 mètres"},
+        {"id": 8, "texte": "50 mètres"}
+      ]
+    }
+  ]
+}
+```
+
+**Response Error (404):**
+```json
+{
+  "success": false,
+  "message": "Aucun quiz disponible pour ce chapitre"
+}
+```
+
+---
+
+### 11. Soumettre Quiz 🔒
+**POST** `/cours/chapitre/{id}/quiz`
+
+**Request Body:**
+```json
+{
+  "reponses": {
+    "1": 1,
+    "2": 7
+  }
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "score": 15.5,
+  "reussi": true,
+  "bonnes_reponses": 7,
+  "total_questions": 10,
+  "pourcentage": 70,
+  "message": "Félicitations ! Vous avez réussi le quiz."
+}
+```
+
+**Response Error (réussite < 60%):**
+```json
+{
+  "success": true,
+  "score": 8.5,
+  "reussi": false,
+  "bonnes_reponses": 4,
+  "total_questions": 10,
+  "pourcentage": 40,
+  "message": "Score insuffisant. Révisez le chapitre et réessayez."
+}
+```
+
+---
+
+### 12. Progression 🔒
+**GET** `/cours/progression/{type}`
+
+**Paramètres:**
+- `type`: `theorique` ou `pratique`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "total_lecons": 50,
+  "lecons_completees": 25,
+  "total_quiz": 10,
+  "quiz_reussis": 5,
+  "pourcentage_completion": 50.0
+}
+```
+
+---
+
+## 👥 Parrainage
+
+### 13. Mon Arbre de Parrainage 🔒
+**GET** `/parrainage/mon-arbre`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "code_parrainage": "ARB-ABC123",
+  "niveau": "N2",
+  "bonus": {
+    "description": "Remboursement de X",
+    "montant": 30000
+  },
+  "filleuls": [
+    {
+      "id": 5,
+      "nom": "Alice Martin",
+      "niveau": "N1",
+      "date_inscription": "2025-01-20",
+      "statut": "actif",
+      "sous_filleuls": [
+        {
+          "id": 12,
+          "nom": "Bob Dupont",
+          "niveau": "N0",
+          "date_inscription": "2025-01-22"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "nom": "Charlie Dubois",
+      "niveau": "N0",
+      "date_inscription": "2025-01-25"
+    }
+  ]
+}
+```
+
+---
+
+### 14. Statistiques Parrainage 🔒
+**GET** `/parrainage/statistiques`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "niveau_actuel": "N2",
+  "nombre_filleuls_directs": 3,
+  "nombre_total_filleuls": 12,
+  "bonus": {
+    "description": "Remboursement de X",
+    "economie": 30000
+  },
+  "prochaine_etape": "Tous vos filleuls doivent atteindre N2 pour passer à N3"
+}
+```
+
+---
+
+### 15. Liste Filleuls 🔒
+**GET** `/parrainage/filleuls`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "filleuls": [
+    {
+      "id": 5,
+      "nom": "Alice Martin",
+      "telephone": "+237600111111",
+      "niveau": "N1",
+      "date_inscription": "2025-01-20",
+      "statut": "actif",
+      "nombre_sous_filleuls": 3
+    },
+    {
+      "id": 8,
+      "nom": "Charlie Dubois",
+      "telephone": "+237600222222",
+      "niveau": "N0",
+      "date_inscription": "2025-01-25",
+      "statut": "actif",
+      "nombre_sous_filleuls": 0
+    }
+  ]
+}
+```
+
+---
+
+## 📅 Sessions & Configuration
+
+### 16. Liste Sessions
+**GET** `/sessions`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "sessions": [
+    {
+      "id": 1,
+      "nom": "Session Janvier 2025",
+      "date_debut": "2025-01-15",
+      "date_examen": "2025-03-15",
+      "statut": "ouvert",
+      "places_disponibles": 45
+    },
+    {
+      "id": 2,
+      "nom": "Session Mars 2025",
+      "date_debut": "2025-03-20",
+      "date_examen": "2025-05-20",
+      "statut": "ouvert",
+      "places_disponibles": 50
+    }
+  ]
+}
+```
+
+---
+
+### 17. Centres d'Examen
+**GET** `/centres-examen`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "centres": [
+    {
+      "id": 1,
+      "nom": "Centre Yaoundé",
+      "adresse": "Ekounou, en face lieu dit 'entree gazolent'",
+      "ville": "Yaoundé",
+      "telephone": "+237677401841",
+      "actif": true
+    },
+    {
+      "id": 2,
+      "nom": "Centre Douala",
+      "adresse": "À définir",
+      "ville": "Douala",
+      "telephone": "+237655511512",
+      "actif": true
+    }
+  ]
+}
+```
+
+---
+
+### 18. Jours de Pratique
+**GET** `/jours-pratique`
+
+**Response Success (200):**
+```json
+{
+  "success": true,
+  "jours": [
+    {"id": 1, "nom": "Lundi", "ordre": 1},
+    {"id": 2, "nom": "Mardi", "ordre": 2},
+    {"id": 3, "nom": "Mercredi", "ordre": 3},
+    {"id": 4, "nom": "Jeudi", "ordre": 4},
+    {"id": 5, "nom": "Vendredi", "ordre": 5},
+    {"id": 6, "nom": "Samedi", "ordre": 6}
+  ]
+}
+```
+
+---
+
+## ⚙️ Simulateur de Paiement
+
+### Comment ça fonctionne
+
+Le système utilise actuellement un **simulateur de paiement** dans `app/Services/PaiementSimulateurService.php`.
+
+**Méthode à remplacer:** `appelAPIExternePaiement()`
+
+```php
+private function appelAPIExternePaiement(array $data): array
+{
+    // 🔴 ACTUELLEMENT: Simulateur (retourne toujours SUCCESS)
+    sleep(2); // Simule délai réseau
+    return [
+        'success' => true,
+        'message' => 'Paiement simulé réussi',
+        'reference' => $data['transaction_id']
+    ];
+
+    // 🟢 À REMPLACER PAR: Vrai appel API
+    // $response = Http::post('https://api-paiement.com/pay', [
+    //     'amount' => $data['montant'],
+    //     'phone' => $data['telephone'],
+    //     'reference' => $data['transaction_id'],
+    //     'method' => $data['methode']
+    // ]);
+    // 
+    // return [
+    //     'success' => $response->successful(),
+    //     'message' => $response->json()['message'],
+    //     'reference' => $response->json()['txn_id']
+    // ];
+}
+```
