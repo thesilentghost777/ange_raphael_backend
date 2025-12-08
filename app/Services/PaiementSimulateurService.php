@@ -164,113 +164,116 @@ class PaiementSimulateurService
      * Traite un paiement par code caisse
      */
     public function traiterPaiementCodeCaisse(string $code, int $userId): array
-    {
-        try {
-            DB::beginTransaction();
+{
+    try {
+        DB::beginTransaction();
 
-            $codeCaisse = CodeCaisse::where('code', $code)->first();
+        $codeCaisse = CodeCaisse::where('code', $code)->first();
 
-            if (!$codeCaisse) {
-                return [
-                    'success' => false,
-                    'message' => 'Code caisse invalide'
-                ];
-            }
-
-            if (!$codeCaisse->estValide()) {
-                return [
-                    'success' => false,
-                    'message' => 'Ce code a déjà été utilisé ou est expiré'
-                ];
-            }
-
-            // Si le code est pour un utilisateur spécifique
-            if ($codeCaisse->user_id && $codeCaisse->user_id !== $userId) {
-                return [
-                    'success' => false,
-                    'message' => 'Ce code n\'est pas attribué à votre compte'
-                ];
-            }
-
-            $user = AutoEcoleUser::findOrFail($userId);
-            $tranche = $codeCaisse->tranche;
-
-            // Vérifications selon le type de tranche
-            if ($tranche === 'x') {
-                if ($user->paiement_x_effectue) {
-                    return [
-                        'success' => false,
-                        'message' => 'La première tranche a déjà été payée'
-                    ];
-                }
-            }
-            elseif ($tranche === 'y') {
-                if (!$user->paiement_x_effectue) {
-                    return [
-                        'success' => false,
-                        'message' => 'La première tranche doit être payée d\'abord'
-                    ];
-                }
-                if ($user->paiement_y_effectue) {
-                    return [
-                        'success' => false,
-                        'message' => 'La deuxième tranche a déjà été payée'
-                    ];
-                }
-            }
-            elseif ($tranche === 'complet') {
-                if ($user->paiement_x_effectue && $user->paiement_y_effectue) {
-                    return [
-                        'success' => false,
-                        'message' => 'Le paiement complet a déjà été effectué'
-                    ];
-                }
-                if ($user->paiement_x_effectue) {
-                    return [
-                        'success' => false,
-                        'message' => 'La première tranche a déjà été payée. Ce code ne peut pas être utilisé'
-                    ];
-                }
-            }
-
-            // Créer le paiement
-            $paiement = AutoEcolePaiement::create([
-                'user_id' => $userId,
-                'montant' => $codeCaisse->montant,
-                'type_paiement' => 'code_caisse',
-                'tranche' => $tranche,
-                'transaction_id' => 'CC-' . $code,
-                'statut' => 'valide',
-                'date_paiement' => now()
-            ]);
-
-            // Marquer le code comme utilisé
-            $codeCaisse->update([
-                'utilise' => true,
-                'user_id' => $userId,
-                'date_utilisation' => now()
-            ]);
-
-            // Traiter le paiement
-            $this->traiterPaiementReussi($paiement, $user, $tranche);
-
-            DB::commit();
-
-            return [
-                'success' => true,
-                'message' => 'Paiement validé avec succès',
-                'montant' => $codeCaisse->montant,
-                'tranche' => $tranche
-            ];
-
-        } catch (\Exception $e) {
-            DB::rollBack();
+        if (!$codeCaisse) {
             return [
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Code caisse invalide'
             ];
         }
+
+        if (!$codeCaisse->estValide()) {
+            return [
+                'success' => false,
+                'message' => 'Ce code a déjà été utilisé ou est expiré'
+            ];
+        }
+
+        // Code attribué à un utilisateur spécifique ?
+        if ($codeCaisse->user_id && $codeCaisse->user_id !== $userId) {
+            return [
+                'success' => false,
+                'message' => 'Ce code n\'est pas attribué à votre compte'
+            ];
+        }
+
+        $user = AutoEcoleUser::findOrFail($userId);
+        $tranche = $codeCaisse->tranche;
+
+        // Vérifications des tranches
+        if ($tranche === 'x') {
+            if ($user->paiement_x_effectue) {
+                return [
+                    'success' => false,
+                    'message' => 'La première tranche a déjà été payée'
+                ];
+            }
+        } elseif ($tranche === 'y') {
+            if (!$user->paiement_x_effectue) {
+                return [
+                    'success' => false,
+                    'message' => 'La première tranche doit être payée d\'abord'
+                ];
+            }
+            if ($user->paiement_y_effectue) {
+                return [
+                    'success' => false,
+                    'message' => 'La deuxième tranche a déjà été payée'
+                ];
+            }
+        } elseif ($tranche === 'complet') {
+            if ($user->paiement_x_effectue && $user->paiement_y_effectue) {
+                return [
+                    'success' => false,
+                    'message' => 'Le paiement complet a déjà été effectué'
+                ];
+            }
+            if ($user->paiement_x_effectue) {
+                return [
+                    'success' => false,
+                    'message' => 'La première tranche a déjà été payée. Ce code ne peut pas être utilisé'
+                ];
+            }
+        }
+
+        // Création du paiement
+        $paiement = AutoEcolePaiement::create([
+            'user_id' => $userId,
+            'montant' => $codeCaisse->montant,
+            'type_paiement' => 'code_caisse',
+            'tranche' => $tranche,
+            'transaction_id' => 'CC-' . $code,
+            'statut' => 'valide',
+            'date_paiement' => now()
+        ]);
+
+        // Marquer le code comme utilisé
+        $codeCaisse->update([
+            'utilise' => true,
+            'user_id' => $userId,
+            'date_utilisation' => now()
+        ]);
+
+        // Traiter le paiement (mise à jour compte utilisateur)
+        $this->traiterPaiementReussi($paiement, $user, $tranche);
+
+        DB::commit();
+
+        // ⚠ IMPORTANT : Réponse complète pour l’app mobile
+        return [
+            'success' => true,
+            'message' => 'Paiement validé avec succès',
+            'montant' => $codeCaisse->montant,
+            'tranche' => $tranche,
+            'transaction_id' => $paiement->transaction_id,
+            'statut' => 'valide',
+            'date_paiement' => $paiement->date_paiement
+        ];
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return [
+            'success' => false,
+            'message' => 'Erreur: ' . $e->getMessage()
+        ];
     }
+}
+
 
     /**
      * Traite un paiement réussi et met à jour le compte utilisateur

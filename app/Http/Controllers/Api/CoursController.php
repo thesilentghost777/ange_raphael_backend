@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\CoursService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\DB;
 class CoursController extends Controller
 {
     private $coursService;
@@ -44,6 +44,7 @@ class CoursController extends Controller
             'modules' => $result['modules']
         ]);
         
+        Log::info("reponse renvoyer au client",['user_id'=>$user->id,'type'=>$type,'response'=>$result]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,

@@ -11,9 +11,12 @@ use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\ConfigPaiementController;
 use App\Http\Controllers\Admin\AdminPaiementController;
+use App\Http\Controllers\StatistiqueController;
 
 Route::middleware('auth','track_statistic')->group(function () {
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [StatistiqueController::class, 'index'])
+        ->name('dashboard');
+
     Route::post('/lang/fr', [LanguageController::class, 'setFrench'])->name('lang.fr');
     Route::post('/lang/en', [LanguageController::class, 'setEnglish'])->name('lang.en');
    
