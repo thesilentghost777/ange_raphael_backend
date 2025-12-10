@@ -175,8 +175,8 @@ class AutoEcoleUserController extends Controller
     {
         $user = AutoEcoleUser::findOrFail($id);
         $user->update([
-            'valide' => true,
-            'date_validation' => now()
+            'validated' => true,
+            'cours_verrouilles' => false,
         ]);
 
         // Débloquer cours si paiement X effectué

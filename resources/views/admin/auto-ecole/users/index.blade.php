@@ -1,7 +1,5 @@
 @extends('layouts.admin')
-
 @section('title', 'Gestion des Utilisateurs Auto-École')
-
 @section('admin-content')
 <div class="container mx-auto px-4 py-6">
     <!-- En-tête -->
@@ -10,19 +8,17 @@
             <h1 class="text-3xl font-bold text-gray-900">Utilisateurs Auto-École</h1>
             <p class="text-gray-600 mt-1">Gérez les candidats inscrits aux formations</p>
         </div>
-        
+       
     </div>
-
     <!-- Filtres -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <form method="GET" action="{{ route('admin.auto-ecole.users.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
-                <input type="text" name="search" value="{{ request('search') }}" 
+                <input type="text" name="search" value="{{ request('search') }}"
                        placeholder="Nom, téléphone, email..."
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
-
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Type de permis</label>
                 <select name="type_permis" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -31,16 +27,14 @@
                     <option value="permis_b" {{ request('type_permis') == 'permis_b' ? 'selected' : '' }}>Permis B</option>
                 </select>
             </div>
-
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                <select name="valide" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <select name="validated" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     <option value="">Tous</option>
-                    <option value="1" {{ request('valide') === '1' ? 'selected' : '' }}>Validés</option>
-                    <option value="0" {{ request('valide') === '0' ? 'selected' : '' }}>Non validés</option>
+                    <option value="1" {{ request('validated') === '1' ? 'selected' : '' }}>Validés</option>
+                    <option value="0" {{ request('validated') === '0' ? 'selected' : '' }}>Non validés</option>
                 </select>
             </div>
-
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Session</label>
                 <select name="session_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -52,19 +46,17 @@
                     @endforeach
                 </select>
             </div>
-
             <div class="md:col-span-4 flex gap-3">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
                     Filtrer
                 </button>
-                <a href="{{ route('admin.auto-ecole.users.index') }}" 
+                <a href="{{ route('admin.auto-ecole.users.index') }}"
                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold">
                     Réinitialiser
                 </a>
             </div>
         </form>
     </div>
-
     <!-- Tableau -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="overflow-x-auto">
@@ -101,7 +93,7 @@
                                 <div class="text-sm text-gray-500">{{ $user->email ?? 'N/A' }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                     {{ $user->type_permis == 'permis_a' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
                                     {{ strtoupper(str_replace('_', ' ', $user->type_permis)) }}
                                 </span>
@@ -111,24 +103,24 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex gap-2">
-                                    <span class="px-2 py-1 text-xs rounded {{ $user->paiement_x ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                        X: {{ $user->paiement_x ? '✓' : '✗' }}
+                                    <span class="px-2 py-1 text-xs rounded {{ $user->paiement_x_effectue ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        X: {{ $user->paiement_x_effectue ? '✓' : '✗' }}
                                     </span>
-                                    <span class="px-2 py-1 text-xs rounded {{ $user->paiement_y ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                        Y: {{ $user->paiement_y ? '✓' : '✗' }}
+                                    <span class="px-2 py-1 text-xs rounded {{ $user->paiement_y_effectue ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        Y: {{ $user->paiement_y_effectue ? '✓' : '✗' }}
                                     </span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $user->valide ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                    {{ $user->valide ? 'Validé' : 'En attente' }}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {{ $user->validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ $user->validated ? 'Validé' : 'En attente' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('admin.auto-ecole.users.show', $user->id) }}" 
+                                <a href="{{ route('admin.auto-ecole.users.show', $user->id) }}"
                                    class="text-blue-600 hover:text-blue-900 mr-3">Voir</a>
-                                <a href="{{ route('admin.auto-ecole.users.edit', $user->id) }}" 
+                                <a href="{{ route('admin.auto-ecole.users.edit', $user->id) }}"
                                    class="text-indigo-600 hover:text-indigo-900">Éditer</a>
                             </td>
                         </tr>
@@ -145,7 +137,6 @@
                 </tbody>
             </table>
         </div>
-
         <!-- Pagination -->
         <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
             {{ $users->links() }}

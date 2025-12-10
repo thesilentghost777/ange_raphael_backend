@@ -1,7 +1,5 @@
 @extends('layouts.admin')
-
 @section('title', 'Détails Utilisateur Auto-École')
-
 @section('admin-content')
 <div class="container mx-auto px-4 py-6">
     <!-- En-tête -->
@@ -11,20 +9,19 @@
             <p class="text-gray-600 mt-1">Informations complètes du candidat</p>
         </div>
         <div class="flex gap-3">
-            <a href="{{ route('admin.auto-ecole.users.edit', $user->id) }}" 
+            <a href="{{ route('admin.auto-ecole.users.edit', $user->id) }}"
                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200 flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Modifier
             </a>
-            <a href="{{ route('admin.auto-ecole.users.index') }}" 
+            <a href="{{ route('admin.auto-ecole.users.index') }}"
                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-200">
                 Retour
             </a>
         </div>
     </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Informations principales -->
         <div class="lg:col-span-2 space-y-6">
@@ -71,7 +68,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Contact -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -95,7 +91,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Formation -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -107,7 +102,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500">Type de permis</label>
-                        <span class="mt-1 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                        <span class="mt-1 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
                             {{ $user->type_permis == 'permis_a' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
                             {{ strtoupper(str_replace('_', ' ', $user->type_permis)) }}
                         </span>
@@ -132,7 +127,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Parrainage -->
             @if($user->parrain_id)
             <div class="bg-white rounded-lg shadow-md p-6">
@@ -155,7 +149,6 @@
             </div>
             @endif
         </div>
-
         <!-- Sidebar -->
         <div class="space-y-6">
             <!-- Statut -->
@@ -164,37 +157,44 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">Validation</span>
-                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $user->valide ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ $user->valide ? 'Validé' : 'En attente' }}
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $user->validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                            {{ $user->validated ? 'Validé' : 'En attente' }}
                         </span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">Paiement X</span>
-                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $user->paiement_x ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                            {{ $user->paiement_x ? 'Payé' : 'Non payé' }}
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $user->paiement_x_effectue ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            {{ $user->paiement_x_effectue ? 'Payé' : 'Non payé' }}
                         </span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600">Paiement Y</span>
-                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $user->paiement_y ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                            {{ $user->paiement_y ? 'Payé' : 'Non payé' }}
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $user->paiement_y_effectue ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                            {{ $user->paiement_y_effectue ? 'Payé' : 'Non payé' }}
                         </span>
                     </div>
                 </div>
-
                 <div class="mt-6 pt-6 border-t border-gray-200">
-    <form action="{{ route('admin.auto-ecole.users.valider', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir changer le statut de validation ?')">
-        @csrf
-        <button type="submit" class="w-full {{ $user->valide ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-2 rounded-lg font-semibold transition duration-200">
-            {{ $user->valide ? 'Invalider' : 'Valider' }}
-        </button>
-    </form>
-</div>
+                    @if($user->validated)
+                        <form action="{{ route('admin.auto-ecole.users.invalider', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir changer le statut de validation ?')">
+                            @csrf
+                            <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-200">
+                                Invalider
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('admin.auto-ecole.users.valider', $user->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir changer le statut de validation ?')">
+                            @csrf
+                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition duration-200">
+                                Valider
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
-
             <!-- Dates -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Informations</h2>
@@ -209,7 +209,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Actions -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Actions</h2>
@@ -222,12 +221,10 @@
         </div>
     </div>
 </div>
-
 <form id="delete-form" action="{{ route('admin.auto-ecole.users.destroy', $user->id) }}" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
-
 <script>
 function confirmDelete() {
     Swal.fire({

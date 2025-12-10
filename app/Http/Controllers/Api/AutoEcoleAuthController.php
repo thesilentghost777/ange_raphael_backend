@@ -33,7 +33,9 @@ class AutoEcoleAuthController extends Controller
             'centre_examen_id' => 'required|exists:centres_examen,id',
             'jours_pratique' => 'required|array'
         ]);
+        
         Log::info("données d'inscription reçues: " . json_encode($request->all()));
+        
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
@@ -107,5 +109,34 @@ class AutoEcoleAuthController extends Controller
     public function profil(Request $request)
     {
         return response()->json(['success' => true, 'user' => $request->user()]);
+    }
+
+    public function deconnexion(Request $request)
+    {
+        try {
+            // Vérifier si l'utilisateur est authentifié
+            if (!$request->user()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Utilisateur non authentifié'
+                ], 401);
+            }
+
+            // Supprimer le token d'authentification de l'utilisateur courant
+            $request->user()->currentAccessToken()->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Déconnexion réussie'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la déconnexion: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la déconnexion'
+            ], 500);
+        }
     }
 }

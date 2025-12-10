@@ -12,12 +12,17 @@ Route::get('/test', function() {
     return response()->json(['message' => 'Ange Raphael fonctionne correctement']);
 });
 // Routes publiques
+Route::post('/deconnexion', [AutoEcoleAuthController::class, 'deconnexion']);
 Route::post('/inscription', [AutoEcoleAuthController::class, 'inscription']);
 Route::post('/connexion', [AutoEcoleAuthController::class, 'connexion']);
 Route::get('/sessions', [SessionController::class, 'index']);
 Route::get('/centres-examen', [SessionController::class, 'centresExamen']);
 Route::get('/jours-pratique', [SessionController::class, 'joursPratique']);
 
+Route::get('/paiement/monetbil/success', [PaiementController::class, 'moneyFusionSuccess'])
+        ->name('paiement.monetbil.success');
+Route::post('/paiement/moneyfusion/webhook', [PaiementController::class, 'moneyFusionWebhook']);
+    
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
     // Profil
@@ -30,18 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/paiement/code-caisse', [PaiementController::class, 'payerAvecCodeCaisse']);
     Route::get('/paiement/statut/{transactionId}', [PaiementController::class, 'verifierStatut']);
     Route::get('/paiements/historique', [PaiementController::class, 'historiquePaiements']);
-    // Route pour la page de succès après paiement Monetbil
-    Route::get('/paiement/monetbil/success', [PaiementController::class, 'monetbilSuccess'])
-        ->name('paiement.monetbil.success');
-
-    // Route pour la page d'échec après paiement Monetbil
-    Route::get('/paiement/monetbil/failed', [PaiementController::class, 'monetbilFailed'])
-        ->name('paiement.monetbil.failed');
-
-    // Route pour la notification de Monetbil (webhook) - Choisir GET ou POST selon config
-    Route::post('/paiement/monetbil/notification', [PaiementController::class, 'monetbilNotification'])
-        ->name('paiement.monetbil.notification');
-
+  
     // Cours
     Route::get('/cours/{type}', [CoursController::class, 'index']); // type: theorique|pratique
     Route::post('/cours/lecon/{id}/completer', [CoursController::class, 'completerLecon']);
