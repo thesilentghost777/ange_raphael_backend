@@ -11,9 +11,9 @@ return new class extends Migration
         // Table de configuration des paiements
         Schema::create('config_paiement', function (Blueprint $table) {
             $table->id();
-            $table->decimal('montant_x', 10, 2)->default(30000); // Première tranche
-            $table->decimal('montant_y', 10, 2)->default(30000); // Deuxième tranche
-            $table->decimal('montant_z', 10, 2)->default(15000); // Bonus niveau 3
+            $table->decimal('montant_x', 10, 2)->default(150); // Première tranche
+            $table->decimal('montant_y', 10, 2)->default(200); // Deuxième tranche
+            $table->decimal('montant_z', 10, 2)->default(100); // Bonus niveau 3
             $table->integer('delai_paiement_y')->default(60); // Délai en jours
             $table->timestamps();
         });
